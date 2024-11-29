@@ -6,10 +6,11 @@
 #include "freertos/task.h"
 
 #include "esp_task_wdt.h"
+#include "driver/uart.h"
 
-// // Task Handle
-// TaskHandle_t gpioTaskHandle = NULL;
-// TaskHandle_t dataTaskHandle = NULL;
+// Task Handle
+TaskHandle_t gpioTaskHandle = NULL;
+TaskHandle_t dataTaskHandle = NULL;
 
 // void printBits32(uint32_t value)
 // {
@@ -109,10 +110,23 @@ typedef struct buffer_data {
     boolean buff1_flg, buff2_flg;
 } buffer_data;
 
-buffer_data *buffers = NULL;
+void gpioUpdate(void *pvParameters) {
+    buffer_data *buffers = (buffer_data*) pvParameters;
+    while (true) {
+        GpioController::update(
+            buffers->buff1,
+            buffers->buff2,
+            &(buffers->buff1_flg),
+            &(buffers->buff2_flg)
+        );
+    }
+}
 
-void gpioUpdate() {
+void decode(void *pvParameters) {
+    buffer_data *buffers = (buffer_data*) pvParameters;
+    while (true) {
 
+    }
 }
 
 void setup() {
@@ -120,9 +134,32 @@ void setup() {
     Serial.begin(921600);
     Serial.setRxBufferSize(2640); // Space for 10 frames
 
+    delay(100);
+
     // Setup frame buffers
     uint8_t buff1[256] = {0};
     uint8_t buff2[256] = {0};
+    buffer_data buffers = {buff1, buff2, false, false};
 
-    *buffers = {buff1, buff2, false, false};
+    // Create thread to draw to grid
+    xTaskCreatePinnedToCore(
+        gpioUpdate,
+        "Draw to grid",
+        4096,
+        &buffers,
+        1,
+        &gpioTaskHandle,
+        0
+    );
+
+    // Create thread to read serial data
+    xTaskCreatePinnedToCore(
+        decode,
+        "Decode",
+        4096,
+        &buffers,
+        1,
+        &dataTaskHandle,
+        1
+    );
 }
