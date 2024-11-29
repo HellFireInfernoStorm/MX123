@@ -15,7 +15,7 @@
 class GpioController {
 public:
     static void init();
-    static void update();
+    static void update(uint8_t *buff1, uint8_t *buff2, bool *buff1_flg, bool *buff2_flg);
 };
 
 #endif // GPIO_CONTROLLER_H
