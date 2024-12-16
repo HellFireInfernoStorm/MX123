@@ -116,7 +116,3 @@
 //         fms_state++;
 //     }
 // }
-
-void DataDecoder::update() {
-    
-}

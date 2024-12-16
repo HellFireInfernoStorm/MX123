@@ -1,165 +1,143 @@
+#include <Arduino.h>
+
 #include "config.h"
-#include "modules/data_decoder.h"
-#include "modules/gpio_controller.h"
+// #include "modules/data_decoder.h"
+// #include "modules/gpio_controller.h"
 
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
+#include "freertos/semphr.h"
 
-#include "esp_task_wdt.h"
-#include "driver/uart.h"
+// #include "esp_task_wdt.h"
+// #include "driver/uart.h"
 
-// Task Handle
-TaskHandle_t gpioTaskHandle = NULL;
-TaskHandle_t dataTaskHandle = NULL;
+// Double buffering
+uint8_t buffer1[256];
+uint8_t buffer2[256];
 
-// void printBits32(uint32_t value)
-// {
-//     for (int i = 31; i >= 0; i--)
-//     {
-//         // Extract the bit by shifting and masking
-//         uint32_t bit = (value >> i) & 1;
-//         Serial.print(bit ? "█": " ");
-
-//         // Print a space every 8 bits for better readability
-//         /* if (i % 8 == 0)
-//         {
-//             Serial.print(" ");
-//         } */
-//     }
-//     Serial.println(); // New line after printing all bits
-// }
-
-// // GPIO Update Task Function
-// void gpioUpdateTask(void *pvParameters)
-// {
-//     // This function will run in its own thread
-//     esp_task_wdt_init(10, false); // 30 seconds timeout
-
-//     esp_task_wdt_add(NULL);
-
-//     while (true)
-//     {
-//         GpioController::update(); // Call the GPIO update in its own thread */
-//         Serial.println("================================");
-//         for (size_t i = 0; i < 64; i++)
-//         {
-//             Serial.printf("%02u: ",i);
-//             printBits32(DataDecoder::data_array[i]);
-//             taskYIELD();
-//             esp_task_wdt_reset();
-//         }
-
-//         esp_task_wdt_reset();
-//     }
-// }
-
-// void dataUpdateTask(void *pvParameters)
-// {
-//     // This function will run in its own thread
-//     esp_task_wdt_init(10, false); // 30 seconds timeout
-
-//     esp_task_wdt_add(NULL);
-
-//     while (true)
-//     {
-//         if (Serial.available())
-//         {
-//             DataDecoder::update(Serial.read());
-//         }
-
-//         esp_task_wdt_reset();
-//     }
-// }
-
-// void setup()
-// {
-//     // Start serial communication
-//     Serial.begin(921600);
-
-//     delay(100);
-
-//     // Initialize modules
-//     DataDecoder::init();
-//     GpioController::init();
-
-//     // Create the GPIO update task (this runs in its own thread)
-//     xTaskCreatePinnedToCore(
-//         gpioUpdateTask,     // Function to implement the task
-//         "GPIO Update Task", // Name of the task
-//         2048,               // Stack size
-//         NULL,               // Parameters
-//         1,                  // Priority
-//         &gpioTaskHandle,    // Task handle
-//         1                   // Pin to Core 1
-//     );
-
-//     // Create the data dec update task (this runs in its own thread)
-//     xTaskCreatePinnedToCore(
-//         dataUpdateTask,     // Function to implement the task
-//         "DATA Update Task", // Name of the task
-//         4096,               // Stack size
-//         NULL,               // Parameters
-//         1,                  // Priority
-//         &dataTaskHandle,    // Task handle
-//         1                   // Pin to Core 1
-//     );
-// }
-
-typedef struct buffer_data {
-    uint8_t *buff1, *buff2;
-    boolean buff1_flg, buff2_flg;
-} buffer_data;
+// Mutexes for buffers
+SemaphoreHandle_t mutex1;
+SemaphoreHandle_t mutex2;
 
 void gpioUpdate(void *pvParameters) {
-    buffer_data *buffers = (buffer_data*) pvParameters;
     while (true) {
-        GpioController::update(
-            buffers->buff1,
-            buffers->buff2,
-            &(buffers->buff1_flg),
-            &(buffers->buff2_flg)
-        );
+        // Pick buffer and take mutex
+        uint8_t *buffer = NULL;
+        SemaphoreHandle_t mutex = NULL;
+        if (xSemaphoreTake(mutex1, 0) == pdTRUE) {
+            buffer = buffer1;
+            mutex = mutex1;
+            Serial.println("Buffer1 Read");
+        } else if (xSemaphoreTake(mutex2, 0) == pdTRUE) {
+            buffer = buffer2;
+            mutex = mutex2;
+            Serial.println("Buffer2 Read");
+        }
+
+        // Print buffer
+        for (int i = 0; i < 64; i++) {
+            for (int j = 0; j < 4; j++) {
+                for (int k = 7; k >= 0; k--) {
+                    if ((buffer[i * 4 + j] >> k) & 0x1) {
+                        Serial.print("#");
+                    } else {
+                        Serial.print(".");
+                    }
+                    // Serial.printf("%hhu", (buffer[i * 8 + j] >> k) & 0x1);
+                }
+            }
+            Serial.println();
+        }
+        Serial.println();
+        Serial.println("------------------------------------------------------------------------");
+
+        // Release mutex
+        if (mutex != NULL) {
+            xSemaphoreGive(mutex);
+        }
+
+        delay(100);
     }
 }
 
 void decode(void *pvParameters) {
-    buffer_data *buffers = (buffer_data*) pvParameters;
     while (true) {
+        // Check that data is available
+        if (Serial.available() >= 264) {
+            // Pick buffer and take mutex
+            uint8_t *buffer = NULL;
+            SemaphoreHandle_t mutex = NULL;
+            if (xSemaphoreTake(mutex1, 0) == pdTRUE) {
+                buffer = buffer1;
+                mutex = mutex1;
+                // Serial.println("Reading to buffer1");
+            } else if (xSemaphoreTake(mutex2, 0) == pdTRUE) {
+                buffer = buffer2;
+                mutex = mutex2;
+                // Serial.println("Reading to buffer2");
+            }
 
+            if (buffer != NULL) {
+                // Decode data into buffer
+
+                // // Skip to last frame
+                // int framesToSkip = (Serial.available() / 264) - 1;
+                // Serial.readBytes((uint8_t*) NULL, 264 * framesToSkip);
+
+                int count = 0;
+                while (Serial.available() > 8) {
+                    if (Serial.read() == 85) {
+                        count++;
+                        if (count == 8) {
+                            // Read data into buffer
+                            Serial.readBytes(buffer, 265);
+                            break;
+                        }
+                    } else {
+                        count = 0;
+                    }
+                }
+
+                // Flush buffer
+                Serial.readBytes((uint8_t*) NULL, Serial.available());
+            }
+
+            // Release mutex
+            if (mutex != NULL) {
+                xSemaphoreGive(mutex);
+            }
+        }
     }
 }
 
 void setup() {
     // Start serial communication
+    Serial.setRxBufferSize(264 * 10); // Space for 10 frames
     Serial.begin(921600);
-    Serial.setRxBufferSize(2640); // Space for 10 frames
-
     delay(100);
 
-    // Setup frame buffers
-    uint8_t buff1[256] = {0};
-    uint8_t buff2[256] = {0};
-    buffer_data buffers = {buff1, buff2, false, false};
+    // Create mutexes
+    mutex1 = xSemaphoreCreateBinary();
+    mutex2 = xSemaphoreCreateBinary();
 
-    // Create thread to draw to grid
-    xTaskCreatePinnedToCore(
-        gpioUpdate,
-        "Draw to grid",
-        4096,
-        &buffers,
-        1,
-        &gpioTaskHandle,
-        0
-    );
+    if (mutex1 == NULL || mutex2 == NULL) {
+        Serial.println("Mutex creation failed");
+        while (true) {} // Halt execution
+    }
 
-    // Create thread to read serial data
-    xTaskCreatePinnedToCore(
-        decode,
-        "Decode",
-        4096,
-        &buffers,
-        1,
-        &dataTaskHandle,
-        1
-    );
+    // Give mutexes to initialize
+    xSemaphoreGive(mutex1);
+    xSemaphoreGive(mutex2);
+
+    // Reset buffers to zero
+    memset(buffer1, 0, 256);
+    memset(buffer2, 0, 256);
+
+    // Create tasks for decode and display
+    xTaskCreatePinnedToCore(decode, "decode", 4096, NULL, 1, NULL, 0);
+    xTaskCreatePinnedToCore(gpioUpdate, "gpioUpdate", 4096, NULL, 1, NULL, 1);
+}
+
+void loop() {
+    // Main loop empty as each task runs in separate thread
 }
