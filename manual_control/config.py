@@ -1,6 +1,6 @@
 # config.py
 
-TARGET_FPS = 30
+TARGET_FPS = 60
 
 # Grid resolution and led gap size
 GRID_WIDTH = 32
@@ -15,6 +15,6 @@ HALF_SCREEN_SIZE = SCREEN_SIZE // 2
 BACKGROUND_COLOR = (30, 30, 30)
 
 # serial comms
-COM_PORT = "COM4"
+COM_PORT = "COM3"
 IP = None
 PORT = 5588
