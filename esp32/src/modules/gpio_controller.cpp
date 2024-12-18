@@ -20,7 +20,7 @@ void shiftOutBit(uint8_t dataPin, uint8_t clockPin, uint8_t bit) {
 
 void GpioController::update(uint8_t *buffer) {
     // Clear y axis
-    for (int i = 0; i < 8; i++) {
+    for (int i = 0; i < ROWS / 8; i++) {
         shiftOut(DATA_PIN, CLOCK_PIN_CATHODE, LSBFIRST, 0x00);
     }
     // Shift initial 1 into y axis
@@ -28,9 +28,9 @@ void GpioController::update(uint8_t *buffer) {
     digitalWrite(LATCH_PIN, LOW);
 
     // Shift rows
-    for (int i = 0; i < 64; i++) {
+    for (int i = 0; i < ROWS; i++) {
         // Shift out x axis
-        for (int j = 0; j < 4; j++) {
+        for (int j = 0; j < (COLS / 8); j++) {
             shiftOut(DATA_PIN, CLOCK_PIN_ANODE, LSBFIRST, buffer[i*4+j]);
         }
 

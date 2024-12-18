@@ -12,9 +12,9 @@
 // #include "driver/uart.h"
 
 // Triple buffering
-uint8_t buffer1[256];
-uint8_t buffer2[256];
-uint8_t buffer3[256];
+uint8_t buffer1[FRAME_SIZE];
+uint8_t buffer2[FRAME_SIZE];
+uint8_t buffer3[FRAME_SIZE];
 uint8_t *frontBuffer = buffer1;
 uint8_t *backBuffer = buffer2;
 uint8_t *freeBuffer = buffer3;
@@ -39,7 +39,7 @@ void gpioUpdate(void *pvParameters) {
         GpioController::update(frontBuffer);
 
         // // Print buffer
-        // for (int i = 0; i < 64; i++) {
+        // for (int i = 0; i < ROWS; i++) {
         //     for (int j = 0; j < 4; j++) {
         //         for (int k = 7; k >= 0; k--) {
         //             if ((frontBuffer[i * 4 + j] >> k) & 0x1) {
@@ -62,21 +62,21 @@ void gpioUpdate(void *pvParameters) {
 void decode(void *pvParameters) {
     while (true) {
         // Check that data is available
-        if (Serial.available() >= 264) {
+        if (Serial.available() >= PACKET_SIZE) {
             // Decode data into buffer
 
             // Skip to last frame
-            int framesToSkip = (Serial.available() / 264) - 1;
-            Serial.readBytes((uint8_t*) NULL, 264 * framesToSkip);
+            int framesToSkip = (Serial.available() / PACKET_SIZE) - 1;
+            Serial.readBytes((uint8_t*) NULL, PACKET_SIZE * framesToSkip);
 
             // Find header
             int count = 0;
-            while (Serial.available() > 8) {
-                if (Serial.read() == 85) {
+            while (Serial.available() > HEADER_SIZE) {
+                if (Serial.read() == HEADER_CHAR) {
                     count++;
-                    if (count == 8) {
+                    if (count == HEADER_SIZE) {
                         // Read data into buffer
-                        Serial.readBytes(freeBuffer, 256);
+                        Serial.readBytes(freeBuffer, FRAME_SIZE);
                         break;
                     }
                 } else {
@@ -103,8 +103,8 @@ void decode(void *pvParameters) {
 
 void setup() {
     // Start serial communication
-    Serial.setRxBufferSize(264 * 10); // Space for 10 frames
-    Serial.begin(921600);
+    Serial.setRxBufferSize(PACKET_SIZE * BUFFER_PACKETS); // Increase RX buffer to fit multiple packets
+    Serial.begin(COMMS_BAUD_RATE);
     delay(100);
 
     // Create mutexes
@@ -119,9 +119,9 @@ void setup() {
     xSemaphoreGive(mutex);
 
     // Reset buffers to zero
-    memset(buffer1, 0, 256);
-    memset(buffer2, 0, 256);
-    memset(buffer3, 0, 256);
+    memset(buffer1, 0, FRAME_SIZE);
+    memset(buffer2, 0, FRAME_SIZE);
+    memset(buffer3, 0, FRAME_SIZE);
 
     // Initialize gpio
     GpioController::init();

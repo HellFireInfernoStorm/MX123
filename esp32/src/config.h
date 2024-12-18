@@ -15,15 +15,21 @@
 
 // GPIO pin definitions
 #define DATA_PIN 13
-#define CLOCK_PIN_ANODE 12
+#define CLOCK_PIN_ANODE 27
 #define CLOCK_PIN_CATHODE 4
 #define LATCH_PIN 14
 #define OE_PIN 2
 
-// Array size
-#define ARRAY_SIZE 64
+// Serial communication settings
+#define ROWS 64
+#define COLS 32
+#define FRAME_SIZE (ROWS * COLS)
+#define HEADER_SIZE 8
+#define HEADER_CHAR 85
+#define METADATA_SIZE 0
+#define PACKET_SIZE (HEADER_SIZE + METADATA_SIZE + FRAME_SIZE)
 
-// 
-#define TARGET_FPS 30
+#define BUFFER_PACKETS 10
+#define COMMS_BAUD_RATE 921600
 
 #endif // CONFIG_H
