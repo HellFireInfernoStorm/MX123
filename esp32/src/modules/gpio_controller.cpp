@@ -61,8 +61,8 @@ void GpioController::update(uint8_t *buffer) {
 
     // Shift each row in succession
     for (int i = 0; i < ROWS; i++) {
-        // Shift column data
-        for (int j = 0; j < (COLS / 8); j++) {
+        // Shift column data (last byte first)
+        for (int j = ((COLS / 8) - 1); j >= 0; j--) {
             shiftOut(DATA_PIN, CLOCK_PIN_CATHODE, LSBFIRST, ~(buffer[i * (COLS / 8) + j]));
         }
 
