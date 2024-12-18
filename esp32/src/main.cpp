@@ -18,6 +18,7 @@ uint8_t buffer3[FRAME_SIZE];
 uint8_t *frontBuffer = buffer1;
 uint8_t *backBuffer = buffer2;
 uint8_t *freeBuffer = buffer3;
+volatile bool newFrame = false;
 
 // Mutex for buffer swapping
 SemaphoreHandle_t mutex;
@@ -27,9 +28,12 @@ void gpioUpdate(void *pvParameters) {
         // Lock mutex
         if (xSemaphoreTake(mutex, portMAX_DELAY) == pdTRUE) {   
             // Swap front and back buffers
-            uint8_t *temp = frontBuffer;
-            frontBuffer = backBuffer;
-            backBuffer = temp;
+            if (newFrame) {
+                uint8_t *temp = frontBuffer;
+                frontBuffer = backBuffer;
+                backBuffer = temp;
+                newFrame = false;
+            }
 
             // Release mutex
             xSemaphoreGive(mutex);
@@ -71,12 +75,14 @@ void decode(void *pvParameters) {
 
             // Find header
             int count = 0;
+            bool frameRead = false;
             while (Serial.available() > HEADER_SIZE) {
                 if (Serial.read() == HEADER_CHAR) {
                     count++;
                     if (count == HEADER_SIZE) {
                         // Read data into buffer
                         Serial.readBytes(freeBuffer, FRAME_SIZE);
+                        frameRead = true;
                         break;
                     }
                 } else {
@@ -88,11 +94,12 @@ void decode(void *pvParameters) {
             Serial.readBytes((uint8_t*) NULL, Serial.available());
 
             // Lock mutex
-            if (xSemaphoreTake(mutex, portMAX_DELAY) == pdTRUE) {
+            if (frameRead && xSemaphoreTake(mutex, portMAX_DELAY) == pdTRUE) {
                 // Swap free and back buffers
                 uint8_t *temp = freeBuffer;
                 freeBuffer = backBuffer;
                 backBuffer = temp;
+                newFrame = true;
 
                 // Release mutex
                 xSemaphoreGive(mutex);
