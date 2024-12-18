@@ -2,52 +2,79 @@
 #include "gpio_controller.h"
 
 void GpioController::init() {
+    // Initialize pins
     pinMode(DATA_PIN, OUTPUT);
     pinMode(CLOCK_PIN_ANODE, OUTPUT);
     pinMode(CLOCK_PIN_CATHODE, OUTPUT);
     pinMode(LATCH_PIN, OUTPUT);
     pinMode(OE_PIN, OUTPUT);
 
-    digitalWrite(OE_PIN, HIGH);
+    // Initizalize grid as blank
+    disableOutput();
+    clearGrid();
+    latchData();
+}
+
+// Move data from shift registers to output registers
+void latchData() {
+    digitalWrite(LATCH_PIN, LOW);
+    // delayMicroseconds(1); // Delay to ensure timing
+    digitalWrite(LATCH_PIN, HIGH);
     digitalWrite(LATCH_PIN, LOW);
 }
 
-void shiftOutBit(uint8_t dataPin, uint8_t clockPin, uint8_t bit) {
+// Enable output to grid
+void enableOutput() {
+    digitalWrite(OE_PIN, LOW);
+}
+
+// Disable output to grid
+void disableOutput() {
+    digitalWrite(OE_PIN, HIGH);
+}
+
+// Shift in zeroes to clear grid
+void clearGrid() {
+    // Zero row axis
+    for (int i = 0; i < ROWS / 8; i++) {
+        shiftOut(DATA_PIN, CLOCK_PIN_ANODE, LSBFIRST, 0x00);
+    }
+
+    // Zero column axis (inverted)
+    for (int i = 0; i < COLS / 8; i++) {
+        shiftOut(DATA_PIN, CLOCK_PIN_CATHODE, LSBFIRST, 0xFF);
+    }
+}
+
+// Shift a single bit
+void shiftBit(uint8_t dataPin, uint8_t clockPin, uint8_t bit) {
     digitalWrite(dataPin, bit);
     digitalWrite(clockPin, HIGH);
+    // delayMicroseconds(1); // Delay to ensure timing
     digitalWrite(clockPin, LOW);
 }
 
+// Display image on grid
 void GpioController::update(uint8_t *buffer) {
-    // Clear y axis
-    for (int i = 0; i < ROWS / 8; i++) {
-        shiftOut(DATA_PIN, CLOCK_PIN_CATHODE, LSBFIRST, 0x00);
-    }
-    // Shift initial 1 into y axis
-    shiftOutBit(DATA_PIN, CLOCK_PIN_ANODE, 1);
-    digitalWrite(LATCH_PIN, LOW);
+    // Shift initial 1 into row axis
+    shiftBit(DATA_PIN, CLOCK_PIN_ANODE, 1);
 
-    // Shift rows
+    // Shift each row in succession
     for (int i = 0; i < ROWS; i++) {
-        // Shift out x axis
+        // Shift column data
         for (int j = 0; j < (COLS / 8); j++) {
-            shiftOut(DATA_PIN, CLOCK_PIN_ANODE, LSBFIRST, buffer[i*4+j]);
+            shiftOut(DATA_PIN, CLOCK_PIN_CATHODE, LSBFIRST, ~(buffer[i * (COLS / 8) + j]));
         }
 
-        // Move data from shift register to output registers
-        digitalWrite(LATCH_PIN, LOW);
-        digitalWrite(LATCH_PIN, HIGH);
-        // Enable output
-        digitalWrite(OE_PIN, LOW);
+        latchData();
+        enableOutput();
 
         // esp_task_wdt_reset(); // Reset the watchdog timer to prevent task restart
 
-        // Microsecond delay for output
-        delayMicroseconds(100);
-        // Disable output
-        digitalWrite(OE_PIN, HIGH);
+        delayMicroseconds(100); // Microsecond delay where line is visible
+        disableOutput();
 
-        // Shift 0 into y axis
-        shiftOutBit(DATA_PIN, CLOCK_PIN_ANODE, 0);
+        // Shift successive 0s along row axis
+        shiftBit(DATA_PIN, CLOCK_PIN_ANODE, 0);
     }
 }
