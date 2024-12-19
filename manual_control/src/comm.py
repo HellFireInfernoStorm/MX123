@@ -21,11 +21,11 @@ class SerialComm(serial.Serial):
                 print(f"Failed to reconnect to port {config.COM_PORT}: {e}")
                 self.port = None
 
-    def sendFrame(self, grid, lineDelay=1):
+    def sendFrame(self, grid, lineDelay=1, verticalLines=True):
         # Ensure there's an image to send
         if grid is not None:
             # Create new array with header
-            frame = np.zeros(265, dtype=np.uint8)
+            frame = np.zeros(266, dtype=np.uint8)
             frame[0:8] = 0b01010101
 
             # Convert grid to bytearray and append to frame
@@ -33,6 +33,8 @@ class SerialComm(serial.Serial):
 
             # Add line delay to frame
             frame[264] = lineDelay
+            # Add line direction to frame
+            frame[265] |= (1 if verticalLines else 0) << 7
 
             # Attempt to reconnect if the port is None
             # if self.port is None:

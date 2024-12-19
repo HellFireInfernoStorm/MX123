@@ -47,6 +47,7 @@ def main():
     varGridInvert = False
     varBGMasking = False
     varLineDelay = 2
+    varLinesVert = True
     inputMode = 1
 
     # Main application loop
@@ -64,9 +65,9 @@ def main():
                     case 109: # M
                         varBGMasking = not varBGMasking
                         print(f'bgMasking={varBGMasking}')
-                    # case 99: # C
-                    #     inputMode = 1
-                    #     print(f'camera input mode')
+                    case 120: # x
+                        varLinesVert = not varLinesVert
+                        print(f'scanLineDirection={'vertical' if varLinesVert else 'horizontal'}')
                     case 122: # Z
                         inputMode = (inputMode + 1) % 3
                         print(f'inputMode={inputMode} : {inputModes[inputMode]}')
@@ -92,7 +93,7 @@ def main():
         display.draw_frame(display_image, scaled_grid)
         if grid is not None:
             # Send image to esp via serial comms
-            comm.sendFrame(grid, varLineDelay)
+            comm.sendFrame(grid, varLineDelay, varLinesVert)
 
         clock.tick(config.TARGET_FPS)
 

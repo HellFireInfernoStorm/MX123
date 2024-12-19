@@ -40,7 +40,11 @@ void gpioUpdate(void *pvParameters) {
         }
 
         // Display frame
-        GpioController::updateVertical(frontBuffer);
+        if (frontBuffer[FRAME_SIZE + 1] >> 7 == 1) {
+            GpioController::updateVertical(frontBuffer);
+        } else {
+            GpioController::updateHorizontal(frontBuffer);
+        }
 
         // // Print buffer
         // for (int i = 0; i < ROWS; i++) {
