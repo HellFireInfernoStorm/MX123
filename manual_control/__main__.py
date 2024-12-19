@@ -5,11 +5,14 @@ import threading
 import serial
 import os
 import config
+import numpy as np
 from src.camera import Camera
 from src.display import Display
 from src.comm import SerialComm
+from src.webserver import WebServer
 
 serialThreadFlag = True
+inputModes = {0: 'blank', 1: 'camera', 2: 'webserver'}
 
 def readSerial(comm: serial.Serial):
     while serialThreadFlag:
@@ -21,21 +24,30 @@ def readSerial(comm: serial.Serial):
                 else:
                     print(line)
 
+def webserver(ws: WebServer):
+    ws.run()
+
 def main():
-    # Initialize camera and display
+    # Initialize modules
     camera = Camera()
     display = Display()
     comm = SerialComm()
+    ws = WebServer()
 
-    # Serial communication function
+    # Begin receiving serial data
     global serialThreadFlag
     serialThread = threading.Thread(target=readSerial, name='serialThread', args=[comm], daemon=True)
     serialThread.start()
 
+    # Start webserver
+    webserverThread = threading.Thread(target=webserver, name='webserverThread', args=[ws], daemon=True)
+    webserverThread.start()
+
     # Application variables
-    varGridInvert = True
+    varGridInvert = False
     varBGMasking = False
-    varScanLineRateMult = 2
+    varLineDelay = 2
+    inputMode = 1
 
     # Main application loop
     running = True
@@ -45,25 +57,42 @@ def main():
             if event.type == pygame.QUIT:
                 running = False
             elif event.type == pygame.KEYDOWN:
-                print(event.key)
                 match event.key:
                     case 105: # I
                         varGridInvert = not varGridInvert
+                        print(f'invert={varGridInvert}')
                     case 109: # M
                         varBGMasking = not varBGMasking
+                        print(f'bgMasking={varBGMasking}')
+                    # case 99: # C
+                    #     inputMode = 1
+                    #     print(f'camera input mode')
+                    case 122: # Z
+                        inputMode = (inputMode + 1) % 3
+                        print(f'inputMode={inputMode} : {inputModes[inputMode]}')
                     case 1073741906: # Up arrow
-                        varScanLineRateMult += 1
+                        varLineDelay = min(varLineDelay + 1, 255)
+                        print(f'lineDelay={50 * varLineDelay}')
                     case 1073741905: # Down arrow
-                        varScanLineRateMult = max(varScanLineRateMult - 1, 1)
+                        varLineDelay = max(varLineDelay - 1, 1)
+                        print(f'lineDelay={50 * varLineDelay}')
 
-        # Process a new frame and get output from camera class
-        display_image, scaled_grid, grid = camera.update(varGridInvert, varBGMasking)
+        if inputMode is 0:
+            # Blank mode
+            display_image = scaled_grid = np.zeros((config.SCREEN_SIZE, config.HALF_SCREEN_SIZE, 3), np.uint8)
+            grid = np.zeros((config.GRID_HEIGHT, config.GRID_WIDTH), bool)
+        elif inputMode is 1:
+            # Camera mode
+            display_image, scaled_grid, grid = camera.update(varGridInvert, varBGMasking)
+        elif inputMode is 2:
+            # Webserver mode
+            display_image, scaled_grid, grid = ws.getDisplay(varGridInvert)
 
         # Draw the frame on the display
         display.draw_frame(display_image, scaled_grid)
-
-        # Send image to esp via serial comms
-        comm.send_image(grid)
+        if grid is not None:
+            # Send image to esp via serial comms
+            comm.sendFrame(grid, varLineDelay)
 
         clock.tick(config.TARGET_FPS)
 

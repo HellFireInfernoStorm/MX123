@@ -7,7 +7,7 @@ import config
 class Camera:
     def __init__(self):
         # Initialize the camera
-        self.cap = cv2.VideoCapture(1)
+        self.cap = cv2.VideoCapture(0)
 
         # Initialize background substractor
         self.backsub = cv2.createBackgroundSubtractorKNN(200, 100, False)
