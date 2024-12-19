@@ -12,9 +12,9 @@
 // #include "driver/uart.h"
 
 // Triple buffering
-uint8_t buffer1[FRAME_SIZE] = {0};
-uint8_t buffer2[FRAME_SIZE] = {0};
-uint8_t buffer3[FRAME_SIZE] = {0};
+uint8_t buffer1[BODY_SIZE] = {0};
+uint8_t buffer2[BODY_SIZE] = {0};
+uint8_t buffer3[BODY_SIZE] = {0};
 uint8_t *frontBuffer = buffer1;
 uint8_t *backBuffer = buffer2;
 uint8_t *freeBuffer = buffer3;
@@ -75,12 +75,12 @@ void decode(void *pvParameters) {
             // Find header
             int count = 0;
             bool frameRead = false;
-            while (Serial.available() > HEADER_SIZE) {
+            while (Serial.available() >= BODY_SIZE) {
                 if (Serial.read() == HEADER_CHAR) {
                     count++;
-                    if (count == HEADER_SIZE) {
+                    if (count == HEADER_SIZE && Serial.available() >= BODY_SIZE) {
                         // Read data into buffer
-                        Serial.readBytes(freeBuffer, FRAME_SIZE);
+                        Serial.readBytes(freeBuffer, BODY_SIZE);
                         frameRead = true;
                         break;
                     }
