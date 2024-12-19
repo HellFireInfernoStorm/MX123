@@ -21,7 +21,7 @@ class SerialComm(serial.Serial):
                 print(f"Failed to reconnect to port {config.COM_PORT}: {e}")
                 self.port = None
 
-    def send_image(self, grid):
+    def sendFrame(self, grid):
         # Ensure there's an image to send
         if grid is not None:
             # Create new array with header

@@ -3,13 +3,11 @@
 import cv2
 import numpy as np
 import config
-import threading
 
 class Camera:
     def __init__(self):
         # Initialize the camera
         self.cap = cv2.VideoCapture(1)
-        # self.cap = cv2.VideoCapture('vids/womandance.mp4')
 
         # Initialize background substractor
         self.backsub = cv2.createBackgroundSubtractorKNN(200, 100, False)
