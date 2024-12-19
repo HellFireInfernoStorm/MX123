@@ -16,7 +16,7 @@ void GpioController::init() {
 }
 
 // Move data from shift registers to output registers
-void latchData() {
+void GpioController::latchData() {
     digitalWrite(LATCH_PIN, LOW);
     // delayMicroseconds(1); // Delay to ensure timing
     digitalWrite(LATCH_PIN, HIGH);
@@ -24,17 +24,17 @@ void latchData() {
 }
 
 // Enable output to grid
-void enableOutput() {
+void GpioController::enableOutput() {
     digitalWrite(OE_PIN, LOW);
 }
 
 // Disable output to grid
-void disableOutput() {
+void GpioController::disableOutput() {
     digitalWrite(OE_PIN, HIGH);
 }
 
 // Shift in zeroes to clear grid
-void clearGrid() {
+void GpioController::clearGrid() {
     // Zero row axis
     for (int i = 0; i < ROWS / 8; i++) {
         shiftOut(DATA_PIN, CLOCK_PIN_ANODE, LSBFIRST, 0x00);
@@ -47,34 +47,53 @@ void clearGrid() {
 }
 
 // Shift a single bit
-void shiftBit(uint8_t dataPin, uint8_t clockPin, uint8_t bit) {
+void GpioController::shiftBit(uint8_t dataPin, uint8_t clockPin, uint8_t bit) {
     digitalWrite(dataPin, bit);
     digitalWrite(clockPin, HIGH);
     // delayMicroseconds(1); // Delay to ensure timing
     digitalWrite(clockPin, LOW);
 }
 
-// Display image on grid
-void GpioController::update(uint8_t *buffer) {
+// Display image on grid with vertical scanlines
+void GpioController::updateVertical(uint8_t *buffer) {
     // Shift initial 1 into row axis
     shiftBit(DATA_PIN, CLOCK_PIN_ANODE, 1);
 
     // Shift each row in succession
     for (int i = 0; i < ROWS; i++) {
-        // Shift column data (last byte first)
-        for (int j = ((COLS / 8) - 1); j >= 0; j--) {
-            shiftOut(DATA_PIN, CLOCK_PIN_CATHODE, LSBFIRST, ~(buffer[i * (COLS / 8) + j]));
+        // Shift column data (last byte first) (inverted)
+        for (int j = 0; j < (COLS / 8); j++) {
+            shiftOut(DATA_PIN, CLOCK_PIN_CATHODE, MSBFIRST, ~(buffer[i * (COLS / 8) + j]));
         }
 
         latchData();
         enableOutput();
-
-        // esp_task_wdt_reset(); // Reset the watchdog timer to prevent task restart
-
         delayMicroseconds(100); // Microsecond delay where line is visible
         disableOutput();
 
         // Shift successive 0s along row axis
         shiftBit(DATA_PIN, CLOCK_PIN_ANODE, 0);
+    }
+}
+
+// Display image on grid with horizontal scanlines
+void GpioController::updateHorizontal(uint8_t *buffer) {
+    // Shift initial 1 into column axis (inverted)
+    shiftBit(DATA_PIN, CLOCK_PIN_CATHODE, 0);
+
+    // Shift each column in succession
+    for (int i = 0; i < COLS; i++) {
+        // Shift row data (last byte first)
+        for (int j = ROWS; j >= 0; j--) {
+            shiftBit(DATA_PIN, CLOCK_PIN_ANODE, (buffer[i / 8 + j * COLS] >> (i % 8)) & 0x1);
+        }
+
+        latchData();
+        enableOutput();
+        delayMicroseconds(100); // Microsecond delay where line is visible
+        disableOutput();
+
+        // Shift successive 0s along column axis (inverted)
+        shiftBit(DATA_PIN, CLOCK_PIN_CATHODE, 1);
     }
 }

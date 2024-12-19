@@ -12,9 +12,9 @@
 // #include "driver/uart.h"
 
 // Triple buffering
-uint8_t buffer1[FRAME_SIZE];
-uint8_t buffer2[FRAME_SIZE];
-uint8_t buffer3[FRAME_SIZE];
+uint8_t buffer1[FRAME_SIZE] = {0};
+uint8_t buffer2[FRAME_SIZE] = {0};
+uint8_t buffer3[FRAME_SIZE] = {0};
 uint8_t *frontBuffer = buffer1;
 uint8_t *backBuffer = buffer2;
 uint8_t *freeBuffer = buffer3;
@@ -40,7 +40,7 @@ void gpioUpdate(void *pvParameters) {
         }
 
         // Display frame
-        GpioController::update(frontBuffer);
+        GpioController::updateVertical(frontBuffer);
 
         // // Print buffer
         // for (int i = 0; i < ROWS; i++) {
@@ -59,7 +59,6 @@ void gpioUpdate(void *pvParameters) {
         // Serial.println("------------------------------------------------------------------------");
 
         // delay(250);
-
     }
 }
 
@@ -122,13 +121,8 @@ void setup() {
         while (true) {} // Halt execution
     }
 
-    // Give mutexes to initialize
+    // Initialize mutex
     xSemaphoreGive(mutex);
-
-    // Reset buffers to zero
-    memset(buffer1, 0, FRAME_SIZE);
-    memset(buffer2, 0, FRAME_SIZE);
-    memset(buffer3, 0, FRAME_SIZE);
 
     // Initialize gpio
     GpioController::init();

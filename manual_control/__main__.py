@@ -32,6 +32,11 @@ def main():
     serialThread = threading.Thread(target=readSerial, name='serialThread', args=[comm], daemon=True)
     serialThread.start()
 
+    # Application variables
+    varGridInvert = True
+    varBGMasking = False
+    varScanLineRateMult = 2
+
     # Main application loop
     running = True
     clock = pygame.time.Clock()
@@ -39,9 +44,20 @@ def main():
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
+            elif event.type == pygame.KEYDOWN:
+                print(event.key)
+                match event.key:
+                    case 105: # I
+                        varGridInvert = not varGridInvert
+                    case 109: # M
+                        varBGMasking = not varBGMasking
+                    case 1073741906: # Up arrow
+                        varScanLineRateMult += 1
+                    case 1073741905: # Down arrow
+                        varScanLineRateMult = max(varScanLineRateMult - 1, 1)
 
         # Process a new frame and get output from camera class
-        display_image, scaled_grid, grid = camera.update()
+        display_image, scaled_grid, grid = camera.update(varGridInvert, varBGMasking)
 
         # Draw the frame on the display
         display.draw_frame(display_image, scaled_grid)

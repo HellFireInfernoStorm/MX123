@@ -5,11 +5,11 @@ import numpy as np
 import config
 import threading
 
-
 class Camera:
     def __init__(self):
         # Initialize the camera
-        self.cap = cv2.VideoCapture(0)
+        self.cap = cv2.VideoCapture(1)
+        # self.cap = cv2.VideoCapture('vids/womandance.mp4')
 
         # Initialize background substractor
         self.backsub = cv2.createBackgroundSubtractorKNN(200, 100, False)
@@ -30,7 +30,7 @@ class Camera:
         self.crop_x = (frame_width - self.crop_w) // 2 # Cropping x offset
         self.crop_y = (frame_height - self.crop_h) // 2 # Cropping y offset
         
-    def update(self):
+    def update(self, outputInvert=False, bgMasking=False):
         # Capture frame from the camera
         ret, frame = self.cap.read()
         if not ret:
@@ -51,6 +51,29 @@ class Camera:
         # Convert to b/w
         grid = cv2.cvtColor(grid, cv2.COLOR_BGR2GRAY) # Convert to grayscale first
         grid = cv2.adaptiveThreshold(grid, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY, 11, 2)
+
+        # Background masking
+        if bgMasking:
+            # Generate foreground mask
+            fg_mask = self.backsub.apply(frame)
+            # Apply morphology to denoise and fill holes in mask
+            kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (5, 5))
+            fg_mask = cv2.morphologyEx(fg_mask, cv2.MORPH_OPEN, kernel, iterations=2)
+            fg_mask = cv2.morphologyEx(fg_mask, cv2.MORPH_CLOSE, kernel, iterations=2)
+            fg_mask = cv2.morphologyEx(fg_mask, cv2.MORPH_DILATE, kernel, iterations=20)
+            fg_mask = cv2.morphologyEx(fg_mask, cv2.MORPH_ERODE, kernel, iterations=20)
+
+            # Threshold mask to convert to b/w
+            _, fg_mask = cv2.threshold(fg_mask, 1, 255, cv2.THRESH_BINARY)
+            # Resize mask to grid dimensions
+            fg_mask = cv2.resize(fg_mask, (config.GRID_WIDTH, config.GRID_HEIGHT), interpolation=cv2.INTER_NEAREST)
+            
+            # Apply mask over resized image
+            grid = cv2.bitwise_and(grid, fg_mask)
+
+        # Invert grid
+        if outputInvert:
+            grid = np.logical_not(grid)
 
         # Scale grid for display
         # Add led gaps

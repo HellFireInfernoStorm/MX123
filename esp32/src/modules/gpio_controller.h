@@ -18,7 +18,8 @@ public:
     static void disableOutput();
     static void clearGrid();
     static void shiftBit(uint8_t dataPin, uint8_t clockPin, uint8_t bit);
-    static void update(uint8_t *buffer);
+    static void updateVertical(uint8_t *buffer);
+    static void updateHorizontal(uint8_t *buffer);
 };
 
 #endif // GPIO_CONTROLLER_H
