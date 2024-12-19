@@ -23,11 +23,11 @@
 // Serial communication settings
 #define ROWS 64
 #define COLS 32
-#define FRAME_SIZE (ROWS * COLS)
+#define FRAME_SIZE (ROWS * COLS / 8)
 #define HEADER_SIZE 8
 #define HEADER_CHAR 85
-#define METADATA_SIZE 0
-#define PACKET_SIZE (HEADER_SIZE + METADATA_SIZE + FRAME_SIZE)
+#define METADATA_SIZE 1
+#define PACKET_SIZE (HEADER_SIZE + FRAME_SIZE + METADATA_SIZE)
 
 #define BUFFER_PACKETS 10
 #define COMMS_BAUD_RATE 921600

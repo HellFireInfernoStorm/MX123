@@ -68,7 +68,7 @@ void GpioController::updateVertical(uint8_t *buffer) {
 
         latchData();
         enableOutput();
-        delayMicroseconds(100); // Microsecond delay where line is visible
+        delayMicroseconds(50); // Microsecond delay where line is visible
         disableOutput();
 
         // Shift successive 0s along row axis
@@ -90,7 +90,7 @@ void GpioController::updateHorizontal(uint8_t *buffer) {
 
         latchData();
         enableOutput();
-        delayMicroseconds(100); // Microsecond delay where line is visible
+        delayMicroseconds(50); // Microsecond delay where line is visible
         disableOutput();
 
         // Shift successive 0s along column axis (inverted)
