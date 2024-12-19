@@ -9,7 +9,7 @@ class Display:
         # Initialize Pygame and set up the screen
         pygame.init()
         self.screen = pygame.display.set_mode((config.SCREEN_SIZE, config.SCREEN_SIZE))
-        pygame.display.set_caption("Pygame Camera View")
+        pygame.display.set_caption("MX2080 Preview")
 
     def draw_frame(self, current_image, scaled_grid_image):
         # Fill the screen with the background color
