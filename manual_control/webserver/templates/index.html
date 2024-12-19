@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mx Display</title>
+
+  <!-- Google fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&family=Roboto+Mono:ital,wght@0,100..700;1,100..700&display=swap" rel="stylesheet">
+
+  <!-- Local css -->
+  <link rel="stylesheet" href="static/css/style.css">
+</head>
+<body class="bg bg-img">
+  <h1 class="title">32 x 64 Grid with Image Overlay Detection and Marking</h1>
+
+  <nav class="menu-bar">
+    <ul class="tab-list">
+      <li class="tab-item">
+        <a class="tab-link--active tab-link" href="index.html">Typing mode</a>
+      </li>
+      <li class="tab-item">
+        <a class="tab-link">Camera mode</a>
+      </li>
+      <li class="tab-item">
+        <a class="tab-link" href="display.html">Display mode</a>
+      </li>
+    </ul>
+  </nav>
+
+  <main class="main">
+    <textarea class="textbox" placeholder="Type something..."></textarea>
+    <div class="grid">
+    </div>
+    <div class="output">
+      <button class="output-btn" onclick="updateBinaryPatterns()">Print binary pattern</button>
+      <div id="binaryOutput">
+        <button class="copy">
+          <img class="copy__img" src="static/images/copy.png" alt="copy icon">
+        </button>
+      </div>
+    </div>
+  </main>
+
+  <footer>
+    <!-- JQuery -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+
+    <!-- Local JS -->
+    <script src="static/js/index.js"></script>
+    <script src="static/js/typing.js"></script>
+  </footer>
+</body>
+</html>
