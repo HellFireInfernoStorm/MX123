@@ -82,7 +82,7 @@ void GpioController::updateHorizontal(uint8_t *buffer) {
     shiftBit(DATA_PIN, CLOCK_PIN_CATHODE, 0);
 
     // Shift each column in succession
-    for (int i = 0; i < COLS; i++) {
+    for (int i = COLS - 1; i >= 0; i--) {
         // Shift row data (last byte first)
         for (int j = ROWS - 1; j >= 0; j--) {
             shiftBit(DATA_PIN, CLOCK_PIN_ANODE, (buffer[j * (COLS / 8) + i / 8] >> (7 - (i % 8))) & 0x1);
