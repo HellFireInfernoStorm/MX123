@@ -133,6 +133,7 @@ a {
   background-color: #1A1A1D;
   border: 1px solid #252528;
   height: 25px;
+  outline: none !important;
   width: 25px;
 }
 
@@ -173,6 +174,11 @@ a {
   width: var(--grid-width);
 }
 
+.output__click {
+  display: flex;
+  gap: 1rem;
+}
+
 .output-btn {
   background-color: #1A1A1D;
   border: 2px solid rgba(194, 194, 194, .05);
@@ -201,21 +207,55 @@ a {
 }
 
 .copy {
-  background-color: rgba(255, 255, 255, .05);
-  border: none;
+  background-color: #1A1A1D;
+  border: 2px solid rgba(194, 194, 194, .05);
   border-radius: 3px;
   cursor: pointer;
-  padding: .3rem .4rem;
+  padding: .3rem .5rem;
   padding-top: .4rem;
-  position: absolute;
   right: .5rem;
   top: .5rem;
 }
 
-.copy:active {
-  background-color: rgba(255, 255, 255, .1);
+.copy:active > .copy__img {
+  opacity: .5;
 }
 
 .copy__img {
-  width: 17px;
+  width: 1.3rem;
+}
+
+@media screen and (max-width: 480px) {
+  .title {
+    margin-bottom: 1.3rem;
+  }
+
+  .tab-link {
+    font-size: .7rem;
+    padding: .5rem;
+  }
+
+  .main {
+    align-items: flex-start;
+    overflow-x: scroll;
+  }
+
+  .img-upload {
+    box-sizing: border-box;
+    width: 100%;
+  }
+
+  .output {
+    width: 100%;
+  }
+
+  .output-btn {
+    font-size: .7rem;
+  }
+
+  #binaryOutput {
+    padding: .7rem 1rem;
+    font-size: .8rem;
+    overflow-x: scroll;
+  }
 }

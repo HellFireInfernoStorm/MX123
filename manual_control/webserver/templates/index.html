@@ -19,13 +19,13 @@
   <nav class="menu-bar">
     <ul class="tab-list">
       <li class="tab-item">
-        <a class="tab-link--active tab-link" href="index">Typing mode</a>
+        <a class="tab-link--active tab-link" href="/">Typing mode</a>
       </li>
       <li class="tab-item">
         <a class="tab-link">Camera mode</a>
       </li>
       <li class="tab-item">
-        <a class="tab-link" href="display">Display mode</a>
+        <a class="tab-link" href="/display">Display mode</a>
       </li>
     </ul>
   </nav>
@@ -35,11 +35,14 @@
     <div class="grid">
     </div>
     <div class="output">
-      <button class="output-btn" onclick="updateBinaryPatterns()">Print binary pattern</button>
-      <div id="binaryOutput">
+      <div class="output__click">
+        <button class="output-btn" onclick="updateBinaryPatterns()">Print binary pattern</button>
         <button class="copy">
           <img class="copy__img" src="static/images/copy.png" alt="copy icon">
         </button>
+        <button class="output-btn" id="postBtn">Post</button>
+      </div>
+      <div id="binaryOutput">
       </div>
     </div>
   </main>
