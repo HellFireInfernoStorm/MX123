@@ -6,13 +6,15 @@ import serial
 import os
 import config
 import numpy as np
+import tkinter as tk
+from tkinter.filedialog import askopenfilename
 from src.camera import Camera
 from src.display import Display
 from src.comm import SerialComm
 from src.webserver import WebServer
 
 serialThreadFlag = True
-inputModes = {0: 'blank', 1: 'camera', 2: 'webserver'}
+inputModes = {0: 'blank', 1: 'camera', 2: 'webserver', 3: 'videoupload'}
 
 def readSerial(comm: serial.Serial):
     while serialThreadFlag:
@@ -29,7 +31,7 @@ def webserver(ws: WebServer):
 
 def main():
     # Initialize modules
-    camera = Camera()
+    camera = Camera(1)
     display = Display()
     comm = SerialComm()
     ws = WebServer()
@@ -47,8 +49,9 @@ def main():
     varGridInvert = False
     varBGMasking = False
     varLineDelay = 2
-    varLinesVert = True
+    varLinesVert = False
     inputMode = 1
+    fileName = ''
 
     # Main application loop
     running = True
@@ -67,10 +70,15 @@ def main():
                         print(f'bgMasking={varBGMasking}')
                     case 120: # x
                         varLinesVert = not varLinesVert
-                        print(f'scanLineDirection={'vertical' if varLinesVert else 'horizontal'}')
+                        print(f'scanLineDirection={"vertical" if varLinesVert else "horizontal"}')
                     case 122: # Z
-                        inputMode = (inputMode + 1) % 3
+                        inputMode = (inputMode + 1) % 4
                         print(f'inputMode={inputMode} : {inputModes[inputMode]}')
+                        if inputMode == 1:
+                            camera = Camera(1)
+                        elif inputMode == 3:
+                            fileName = askopenfilename(initialdir='.', filetypes=[('MP4', '*.mp4')])
+                            camera = Camera(fileName)
                     case 1073741906: # Up arrow
                         varLineDelay = min(varLineDelay + 1, 255)
                         print(f'lineDelay={50 * varLineDelay}')
@@ -78,14 +86,14 @@ def main():
                         varLineDelay = max(varLineDelay - 1, 1)
                         print(f'lineDelay={50 * varLineDelay}')
 
-        if inputMode is 0:
+        if inputMode == 0:
             # Blank mode
             display_image = scaled_grid = np.zeros((config.SCREEN_SIZE, config.HALF_SCREEN_SIZE, 3), np.uint8)
             grid = np.zeros((config.GRID_HEIGHT, config.GRID_WIDTH), bool)
-        elif inputMode is 1:
+        elif inputMode == 1 or inputMode == 3:
             # Camera mode
             display_image, scaled_grid, grid = camera.update(varGridInvert, varBGMasking)
-        elif inputMode is 2:
+        elif inputMode == 2:
             # Webserver mode
             display_image, scaled_grid, grid = ws.getDisplay(varGridInvert)
 
@@ -95,7 +103,8 @@ def main():
             # Send image to esp via serial comms
             comm.sendFrame(grid, varLineDelay, varLinesVert)
 
-        clock.tick(config.TARGET_FPS)
+        if inputMode != 4:
+            clock.tick(config.TARGET_FPS)
 
     # Clean up resources
     camera.release()

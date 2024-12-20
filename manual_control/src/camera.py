@@ -5,9 +5,9 @@ import numpy as np
 import config
 
 class Camera:
-    def __init__(self):
+    def __init__(self, source=0):
         # Initialize the camera
-        self.cap = cv2.VideoCapture(0)
+        self.cap = cv2.VideoCapture(source)
 
         # Initialize background substractor
         self.backsub = cv2.createBackgroundSubtractorKNN(200, 100, False)
@@ -32,8 +32,16 @@ class Camera:
         # Capture frame from the camera
         ret, frame = self.cap.read()
         if not ret:
-            print("No frame")
-            return None, None, None
+            # Check if it's a video file and reset to the beginning if the video has ended
+            if self.cap.get(cv2.CAP_PROP_FRAME_COUNT) > 0:
+                self.cap.set(cv2.CAP_PROP_POS_FRAMES, 0)
+                ret, frame = self.cap.read()
+                if not ret:  # If we still can't read a frame, return
+                    print("Failed to reset video.")
+                    return None, None, None
+            else:
+                print("No frame")
+                return None, None, None
 
         # Crop the frame to a 2:1 aspect ratio
         frame = frame[self.crop_y:self.crop_y+self.crop_h, self.crop_x:self.crop_x+self.crop_w]
