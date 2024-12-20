@@ -119,7 +119,7 @@ $(".copy").on("click", () => {
 $("#postBtn").on("click", () => {
   const txt = $("#binaryOutput").html().replaceAll("<br>", "\r\n");
 
-  fetch('https://jsonplaceholder.typicode.com/posts', {
+  fetch('/update', {
     method: 'POST',
     body: JSON.stringify({
       title: 'binary',

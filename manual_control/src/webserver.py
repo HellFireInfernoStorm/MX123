@@ -1,6 +1,6 @@
 # src/webserver.py
 
-from flask import Flask, render_template
+from flask import Flask, render_template, request, jsonify
 import numpy as np
 import cv2
 import config
@@ -14,7 +14,6 @@ class WebServer:
 
         # Setup internal grid
         self.grid = np.zeros((64,32), bool)
-        self.grid[20, 20] = True
 
         # Setup endpoints
         self._setup_()
@@ -31,6 +30,14 @@ class WebServer:
             return render_template('display.html')
         
         # API endpoints
+        @self.app.route('/update', methods=['POST'])
+        def update():
+            data = request.json
+            data = [line.strip()[2:][::-1] for line in data['body'].strip('\r\n,').split(',')]
+            for i in range(64):
+                for j in range(32):
+                    self.grid[i, j] = data[i][j] is '1'
+            return jsonify({'status': 'Update successful'})
 
     # Start the server
     def run(self):
