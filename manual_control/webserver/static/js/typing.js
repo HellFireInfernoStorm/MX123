@@ -1,9 +1,11 @@
-// [rows, columns]
-const gridSize = [64, 32];
+// Font size
+const letterWidth = 5;
+const letterHeight = 5;
+
+const spaceSize = 1;
 
 // Pixel font definitions (5x5 for selected characters)
 const fontMap = {
-  0: ["00000", "00000", "00000", "00000", "00000"],
   A: ["01110", "10001", "11111", "10001", "10001"],
   B: ["11110", "10001", "11110", "10001", "11110"],
   C: ["01110", "10001", "10000", "10001", "01110"],
@@ -20,7 +22,7 @@ const fontMap = {
   N: ["10001", "11001", "10101", "10011", "10001"],
   O: ["01110", "10001", "10001", "10001", "01110"],
   P: ["11110", "10001", "11110", "10000", "10000"],
-  Q: ["01110", "10001", "10001", "10011", "01111"],
+  Q: ["01110", "10001", "10001", "10101", "01111"],
   R: ["11110", "10001", "11110", "10010", "10001"],
   S: ["01111", "10000", "01110", "00001", "11110"],
   T: ["11111", "00100", "00100", "00100", "00100"],
@@ -29,44 +31,77 @@ const fontMap = {
   W: ["10001", "10001", "10101", "11011", "10001"],
   X: ["10001", "01010", "00100", "01010", "10001"],
   Y: ["10001", "01010", "00100", "00100", "00100"],
-  Z: ["11111", "00010", "00100", "01000", "11111"]
+  Z: ["11111", "00010", "00100", "01000", "11111"],
+  "-": ["00000", "00000", "11111", "00000", "00000"],
+  ".": ["00000", "00000", "00000", "01100", "01100"],
+  ",": ["00000", "00000", "00000", "01100", "00100"],
+  "0": ["01110", "10001", "10011", "10101", "01110"],
+  "1": ["00100", "01100", "00100", "00100", "11111"],
+  "2": ["11110", "00001", "01110", "10000", "11111"],
+  "9": ["01110", "10001", "01111", "00001", "11110"]
 };
 
-// From what cell typing starts
-const start = 0;
+// Typing state
+let currentRow = 0;
+let currentCol = 0;
 
-// Font size
-const step = 6;
+function drawLetter(letter, row, col) {
+  const pattern = fontMap[letter.toUpperCase()] || null;
+  if (!pattern) return;
 
-let chunk = [];
-
-for (let r=start; r<gridSize[0]-step; r+=step) {
-  let row = [r, r+5];
-  for (let c=start; c<gridSize[1]-step; c+=step) {
-    let col = [c, c+5];
-    chunk.push([row, col]);
-  }
-}
-
-function handleTyping(k, letter) {
-  for (let i=chunk[k][0][0]; i<chunk[k][0][1]; i++) {
-    for (let j=chunk[k][1][0]; j<chunk[k][1][1]; j++) {
-      if (fontMap[letter][i-chunk[k][0][0]][j-chunk[k][1][0]] === "1") {
-        $(`.cell[data-row="${i}"][data-col="${j}"]`).addClass("cell--active");
-      } else {
-        $(`.cell[data-row="${i}"][data-col="${j}"]`).removeClass("cell--active");
+  for (let r = 0; r < letterHeight; r++) {
+    for (let c = 0; c < letterWidth; c++) {
+      if (row + r >= gridRows || col + c >= gridCols) continue;
+      if (pattern[r][c] === "1") {
+        cells[row + r][col + c].addClass("cell--active");
       }
     }
   }
 }
 
-$(document).ready(() => {
-  $(".textbox").on("input", ({target}) => {
-    let input = $(target).val().toUpperCase().replace(/\s/g, '');
-    let letters = [...input.split(''), ...Array(chunk.length - input.length).fill("0")];
+let previousValue = $(".textbox").val();
+
+document.addEventListener("input", () => {
+  const currentValue = $(".textbox").val();
+
+  if (currentValue.length < previousValue.length) {
+    $(".cell.cell--active").removeClass("cell--active");
+    currentRow = 0;
+    currentCol = 0;    
   
-    for (let i=0; i<letters.length; i++) {
-      handleTyping(i, letters[i]);
+    let txt = $(".textbox").val();
+    for (let i=0; i<txt.length; i++) {
+      if (txt[i] === "\n") {
+        type("\n");
+      } else {
+        type(txt[i]);
+      }
     }
-  });
+  } else {
+    type($(".textbox").val().at(-1));
+  }
+
+  previousValue = currentValue;
 });
+
+function type(key) {
+  if (key === "\n") {
+    currentRow += letterHeight + 1;
+    currentCol = 0;
+  }  else if (key === " ") {
+    currentCol += spaceSize;
+    if (currentCol + letterWidth > gridCols) {
+      currentRow += letterHeight + 1;
+      currentCol = 0;
+    }
+  } else if (key.length === 1 && /^[A-Z0-9\-.,]$/i.test(key)) {
+    if (currentCol + letterWidth <= gridCols) {
+      drawLetter(key, currentRow, currentCol);
+      currentCol += letterWidth + 1;
+    }
+    if (currentCol + letterWidth > gridCols) {
+      currentRow += letterHeight + 1;
+      currentCol = 0;
+    }
+  }
+}

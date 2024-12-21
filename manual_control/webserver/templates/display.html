@@ -25,7 +25,7 @@
         <a class="tab-link">Camera mode</a>
       </li>
       <li class="tab-item">
-        <a class="tab-link tab-link--active" href="/display">Display mode</a>
+        <a class="tab-link tab-link--active" href="/display" data-src="display.html">Display mode</a>
       </li>
     </ul>
   </nav>
@@ -36,16 +36,22 @@
       <p class="image-upload__txt">Drag and Drop file here or <span class="underline">Choose file</span></p>
     </div>
     <input type="file" class="input-img" id="imageUpload" accept="image/*">
+    <div class="arrows output__click">
+      <button class="output-btn arrow" data-dir="ArrowUp">Top</button>
+      <button class="output-btn arrow" data-dir="ArrowDown">Bottom</button>
+      <button class="output-btn arrow" data-dir="ArrowLeft">Left</button>
+      <button class="output-btn arrow" data-dir="ArrowRight">Right</button>
+    </div>
     <div class="grid">
     </div>
     <div class="output">
       <div class="output">
         <div class="output__click">
-          <button class="output-btn" onclick="updateBinaryPatterns()">Print binary pattern</button>
+          <button class="output-btn" onclick="updateBinaryPatterns()">Print</button>
+          <button class="output-btn" id="postBtn">Post</button>
           <button class="copy">
             <img class="copy__img" src="static/images/copy.png" alt="copy icon">
           </button>
-          <button class="output-btn" id="postBtn">Post</button>
         </div>
         <div id="binaryOutput">
       </div>

@@ -111,6 +111,7 @@ a {
 
 .underline {
   text-decoration: underline;
+  text-wrap-mode: nowrap;
 }
 
 #hiddenCanvas {
@@ -226,22 +227,50 @@ a {
 }
 
 @media screen and (max-width: 480px) {
+  .bg {
+    padding: 0;
+  }
+
   .title {
     margin-bottom: 1.3rem;
   }
 
+  .menu-bar {
+    margin-bottom: 1rem;
+  }
+
+  .tab-list {
+    align-items: center;
+    flex-direction: column;
+    gap: 2rem;
+  }
+
   .tab-link {
-    font-size: .7rem;
-    padding: .5rem;
+    display: block;
+    box-sizing: border-box;
+    font-size: .8rem;
+    padding: 1rem;
+    text-align: center;
+    width: 10rem;
   }
 
   .main {
     align-items: flex-start;
+    margin: 1rem;
     overflow-x: scroll;
+  }
+
+  .textbox {
+    font-size: .8rem;
+    min-height: 7rem;
+    width: 100%;
   }
 
   .img-upload {
     box-sizing: border-box;
+    min-height: 7rem;
+    padding: 1rem;
+    text-align: center;
     width: 100%;
   }
 
@@ -250,7 +279,7 @@ a {
   }
 
   .output-btn {
-    font-size: .7rem;
+    font-size: .8rem;
   }
 
   #binaryOutput {

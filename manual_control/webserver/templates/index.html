@@ -32,15 +32,21 @@
 
   <main class="main">
     <textarea class="textbox" placeholder="Type something..."></textarea>
+    <div class="arrows output__click">
+      <button class="output-btn arrow" data-dir="ArrowUp">Top</button>
+      <button class="output-btn arrow" data-dir="ArrowDown">Bottom</button>
+      <button class="output-btn arrow" data-dir="ArrowLeft">Left</button>
+      <button class="output-btn arrow" data-dir="ArrowRight">Right</button>
+    </div>
     <div class="grid">
     </div>
     <div class="output">
       <div class="output__click">
-        <button class="output-btn" onclick="updateBinaryPatterns()">Print binary pattern</button>
+        <button class="output-btn" onclick="updateBinaryPatterns()">Print</button>
+        <button class="output-btn" id="postBtn">Post</button>
         <button class="copy">
           <img class="copy__img" src="static/images/copy.png" alt="copy icon">
         </button>
-        <button class="output-btn" id="postBtn">Post</button>
       </div>
       <div id="binaryOutput">
       </div>

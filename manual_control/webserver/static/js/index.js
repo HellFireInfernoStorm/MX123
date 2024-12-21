@@ -145,49 +145,57 @@ window.addEventListener('keydown', (event) => {
   }
 });
 
+$(".arrow").on("click", ({target}) => {
+  arrowsMove($(target).attr("data-dir"));
+});
+
 // Handle keyboard arrow key presses to shift the overlay
 document.addEventListener('keydown', (event) => {
-  switch (event.key) {
+  arrowsMove(event.key);
+});
+
+function arrowsMove(key) {
+  const activeCells = $(".cell--active");
+
+  switch (key) {
     case 'ArrowUp':
-      yOffset--; // Move up
+      if (!activeCells.is('[data-row="0"]')) yOffset = -1;
       break;
     case 'ArrowDown':
-      yOffset++; // Move down
+      if (!activeCells.is('[data-row="63"]')) yOffset = 1;
       break;
     case 'ArrowLeft':
-      xOffset--; // Move left
+      if (!activeCells.is('[data-col="0"]')) xOffset = -1;
       break;
     case 'ArrowRight':
-      xOffset++; // Move right
+      if (!activeCells.is('[data-col="31"]')) xOffset = 1;
       break;
     default:
       return; // Ignore other keys
   }
 
   moveActiveCells(); // Reprocess image overlay with updated offsets
-});
+}
 
 function moveActiveCells() {
-  const activeCells = $(".cell--active");
+  
+  const activeCells = $(".cell.cell--active");
   $(".cell").removeClass("cell--active");
 
-  for (let row = 0; row < gridRows; row++) {
-    for (let col = 0; col < gridCols; col++) {
-      let isActive = activeCells.is(cells[row][col]);
+  activeCells.each(function () {
+    const currentCell = $(this);
+    const rowOffset = parseInt(currentCell.attr("data-row")) + yOffset;
+    const colOffset = parseInt(currentCell.attr("data-col")) + xOffset;
 
-      if (isActive) {
-        rowOffset = row + yOffset;
-        colOffset = col + xOffset
-          try {
-            cells[rowOffset][colOffset].addClass("cell--active");
-          } catch(err) {
-            cells[row][col].addClass("cell--active");
-            xOffset = 0;
-            yOffset = 0;
-          }
-      }
+    // Ensure boundaries are respected
+    if (
+      rowOffset >= 0 && rowOffset <= 63 &&
+      colOffset >= 0 && colOffset <= 31
+    ) {
+      // Activate the new cell
+      $(`[data-row="${rowOffset}"][data-col="${colOffset}"]`).addClass("cell--active");
     }
-  }
+  });
 
   xOffset = 0;
   yOffset = 0;
