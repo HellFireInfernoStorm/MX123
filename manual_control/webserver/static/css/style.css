@@ -196,6 +196,12 @@ a {
   border-color: rgba(194, 194, 194, .1);
 }
 
+.output {
+  pointer-events: none;
+  position: absolute;
+  visibility: hidden;
+}
+
 #binaryOutput {
   background-color: #1A1A1D;
   box-sizing: border-box;
@@ -203,8 +209,14 @@ a {
   font-family: "Roboto Mono";
   letter-spacing: 0.18em;
   padding: 1rem 1.3rem;
+}
+
+.post-btn__icon {
+  width: 1.1rem;
+  margin-left: .3rem;
+  opacity: .8;
   position: relative;
-  visibility: hidden;
+  top: .2rem;
 }
 
 .copy {
@@ -287,4 +299,8 @@ a {
     font-size: .8rem;
     overflow-x: scroll;
   }
+}
+
+.display--none {
+  display: none;
 }

@@ -34,8 +34,6 @@ function updateBinaryPatterns() {
     }
     binaryOutput.innerHTML += `${binaryPattern},<br>`;
   }
-
-  binaryOutput.style.visibility = "visible";
 }
 
 $(document).ready(() => {
@@ -66,6 +64,8 @@ $(document).ready(() => {
     } else {
       $(target).addClass(active);
     }
+
+    updateBinaryPatterns();
   });
 
   // Drawing function
@@ -101,6 +101,8 @@ $(document).ready(() => {
         }, 20); // Adjust debounce time as necessary
       }
     });
+
+    updateBinaryPatterns();
   });
   
   // Stop drawing when mouse is released
@@ -108,7 +110,18 @@ $(document).ready(() => {
     isKeyDown = false;
     // Remove the mouseenter handler when mouse is up to prevent unnecessary event bindings
     $(".grid").off("mouseenter", ".cell");
+
+    updateBinaryPatterns();
   });
+
+  $("#clearBtn").on("click", () => {
+    $(".cell--active").each((i, cell) => {
+      $(cell).removeClass("cell--active");
+    });
+
+    updateBinaryPatterns();
+  });
+
 });
 
 $(".copy").on("click", () => {
@@ -196,6 +209,8 @@ function moveActiveCells() {
       $(`[data-row="${rowOffset}"][data-col="${colOffset}"]`).addClass("cell--active");
     }
   });
+
+  updateBinaryPatterns();
 
   xOffset = 0;
   yOffset = 0;

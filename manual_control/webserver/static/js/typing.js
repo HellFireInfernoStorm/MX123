@@ -54,6 +54,7 @@ function drawLetter(letter, row, col) {
       if (row + r >= gridRows || col + c >= gridCols) continue;
       if (pattern[r][c] === "1") {
         cells[row + r][col + c].addClass("cell--active");
+        updateBinaryPatterns();
       }
     }
   }
@@ -66,6 +67,9 @@ document.addEventListener("input", () => {
 
   if (currentValue.length < previousValue.length) {
     $(".cell.cell--active").removeClass("cell--active");
+
+    updateBinaryPatterns();
+    
     currentRow = 0;
     currentCol = 0;    
   

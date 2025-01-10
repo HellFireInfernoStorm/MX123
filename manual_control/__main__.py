@@ -2,6 +2,7 @@
 
 import pygame
 import threading
+import pygame.locals
 import serial
 import os
 import config
@@ -14,7 +15,6 @@ from src.comm import SerialComm
 from src.webserver import WebServer
 
 serialThreadFlag = True
-inputModes = {0: 'blank', 1: 'camera', 2: 'webserver', 3: 'videoupload'}
 
 def readSerial(comm: serial.Serial):
     while serialThreadFlag:
@@ -31,7 +31,8 @@ def webserver(ws: WebServer):
 
 def main():
     # Initialize modules
-    camera = Camera(1)
+    camera_num = 0
+    camera = Camera(camera_num)
     display = Display()
     comm = SerialComm()
     ws = WebServer()
@@ -50,8 +51,10 @@ def main():
     varBGMasking = False
     varLineDelay = 2
     varLinesVert = False
-    inputMode = 1
+    inputMode = 0
     fileName = ''
+
+    shiftUp = False
 
     # Main application loop
     running = True
@@ -60,37 +63,49 @@ def main():
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
+
+            elif event.type == pygame.MOUSEWHEEL:
+                varLineDelay = min(max(varLineDelay + event.y * (5 if shiftUp else 1), 1), 255)
+                print(f'lineDelay={50 * varLineDelay}')
+
+            elif event.type == pygame.KEYUP:
+                match event.key:
+                    case pygame.locals.K_LSHIFT: # L SHIFT
+                        shiftUp = False
+                    case pygame.locals.K_RSHIFT: # R SHIFT
+                        shiftUp = False
+
             elif event.type == pygame.KEYDOWN:
                 match event.key:
-                    case 105: # I
+                    case pygame.locals.K_q: # Q
                         varGridInvert = not varGridInvert
                         print(f'invert={varGridInvert}')
-                    case 109: # M
+                    case pygame.locals.K_w: # W
                         varBGMasking = not varBGMasking
                         print(f'bgMasking={varBGMasking}')
-                    case 120: # x
+                    case pygame.locals.K_e: # E
                         varLinesVert = not varLinesVert
                         print(f'scanLineDirection={"vertical" if varLinesVert else "horizontal"}')
-                    case 122: # Z
-                        inputMode = (inputMode + 1) % 4
-                        print(f'inputMode={inputMode} : {inputModes[inputMode]}')
-                        if inputMode == 1:
-                            camera = Camera(1)
-                        elif inputMode == 3:
-                            fileName = askopenfilename(initialdir='.', filetypes=[('MP4', '*.mp4')])
-                            camera = Camera(fileName)
-                    case 1073741906: # Up arrow
-                        varLineDelay = min(varLineDelay + 1, 255)
-                        print(f'lineDelay={50 * varLineDelay}')
-                    case 1073741905: # Down arrow
-                        varLineDelay = max(varLineDelay - 1, 1)
-                        print(f'lineDelay={50 * varLineDelay}')
+                    
+                    case pygame.locals.K_z: # Z
+                        inputMode = 0
+                        camera = Camera(camera_num)
+                        print(f'inputMode=Camera')
+                    case pygame.locals.K_x: # X
+                        inputMode = 1
+                        fileName = askopenfilename(initialdir='.', filetypes=[('MP4', '*.mp4')])
+                        camera = Camera(fileName)
+                        print(f'inputMode=VideoPlayback')
+                    case pygame.locals.K_c: # C
+                        inputMode = 2
+                        print(f'inputMode=Webserver')
 
-        if inputMode == 0:
-            # Blank mode
-            display_image = scaled_grid = np.zeros((config.SCREEN_SIZE, config.HALF_SCREEN_SIZE, 3), np.uint8)
-            grid = np.zeros((config.GRID_HEIGHT, config.GRID_WIDTH), bool)
-        elif inputMode == 1 or inputMode == 3:
+                    case pygame.locals.K_LSHIFT: # L SHIFT
+                        shiftUp = True
+                    case pygame.locals.K_RSHIFT: # R SHIFT
+                        shiftUp = True
+
+        if inputMode == 0 or inputMode == 1:
             # Camera mode
             display_image, scaled_grid, grid = camera.update(varGridInvert, varBGMasking)
         elif inputMode == 2:
@@ -103,7 +118,7 @@ def main():
             # Send image to esp via serial comms
             comm.sendFrame(grid, varLineDelay, varLinesVert)
 
-        if inputMode != 4:
+        if inputMode != 2:
             clock.tick(config.TARGET_FPS)
 
     # Clean up resources
