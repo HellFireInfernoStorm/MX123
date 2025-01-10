@@ -120,13 +120,17 @@ $(document).ready(() => {
     });
 
     updateBinaryPatterns();
+
+    fetch('/clear', {
+      method: 'POST',
+      headers: {
+        'Content-type': 'application/json',
+      },
+    })
+      .then((response) => response.json())
+      .then((json) => console.log(json));
   });
 
-});
-
-$(".copy").on("click", () => {
-  const txt = $("#binaryOutput").html().replaceAll("<br>", "\r\n");
-  navigator.clipboard.writeText(txt);
 });
 
 $("#postBtn").on("click", () => {

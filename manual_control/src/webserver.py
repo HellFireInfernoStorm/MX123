@@ -36,7 +36,12 @@ class WebServer:
             data = [line.strip()[2:][::-1] for line in data['body'].strip('\r\n,').split(',')]
             for i in range(64):
                 for j in range(32):
-                    self.grid[i, j] = data[i][j] is '1'
+                    self.grid[i, j] = True if data[i][j] is '1' else False
+            return jsonify({'status': 'Update successful'})
+
+        @self.app.route('/clear', methods=['POST'])
+        def clear():
+            self.clearGrid()
             return jsonify({'status': 'Update successful'})
 
     # Start the server
@@ -62,3 +67,7 @@ class WebServer:
         grid_display = cv2.resize(grid_display, (config.HALF_SCREEN_SIZE, config.SCREEN_SIZE), interpolation=cv2.INTER_NEAREST)
 
         return display_img, grid_display, grid
+
+    # Clear the grid
+    def clearGrid(self):
+        self.grid[:,:] = 0

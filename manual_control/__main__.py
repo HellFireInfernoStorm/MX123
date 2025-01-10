@@ -86,6 +86,8 @@ def main():
                     case pygame.locals.K_e: # E
                         varLinesVert = not varLinesVert
                         print(f'scanLineDirection={"vertical" if varLinesVert else "horizontal"}')
+                    case pygame.locals.K_a: # A
+                        ws.clearGrid()
                     
                     case pygame.locals.K_z: # Z
                         inputMode = 0

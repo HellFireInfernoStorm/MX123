@@ -109,3 +109,7 @@ function type(key) {
     }
   }
 }
+
+$("#clearBtn").on("click", () => {
+  $(".textbox").val("")
+});
