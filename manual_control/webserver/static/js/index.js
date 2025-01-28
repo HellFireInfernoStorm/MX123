@@ -1,19 +1,32 @@
 const cells = []
 
 function createGrid() {
-  let cloneBtn = (r, c) => {
-    return `<button class="cell" data-row="${r}" data-col="${c}"></button>`;
-  }
-  
-  $(".grid").empty();
+  const totalRows = 64;
+  const totalCols = 32;
+  const batchSize = 8; // Number of rows to process per batch
+  let currentRow = 0;
 
-  for (let row=0; row<64; row++) {
-    cells[row] = [];
-    for (let col=0; col<32; col++) {
-      $(".grid").append(cloneBtn(row, col));
-      cells[row][col] = $(`.cell[data-row=${row}][data-col="${col}"]`);
+  // Function to process a batch of rows
+  function processBatch() {
+    for (let row = currentRow; row < currentRow + batchSize && row < totalRows; row++) {
+      cells[row] = [];
+      for (let col = 0; col < totalCols; col++) {
+        // Dynamically append buttons to the grid
+        $(".grid").append(`<button class="cell" data-row="${row}" data-col="${col}"></button>`);
+        cells[row][col] = $(`.cell[data-row=${row}][data-col="${col}"]`);
+      }
+    }
+    currentRow += batchSize;
+
+    if (currentRow < totalRows) {
+      // Schedule the next batch to run
+      setTimeout(processBatch, 0);
     }
   }
+
+  // Start the asynchronous grid creation
+  $(".grid").empty(); // Clear the grid before populating
+  processBatch();
 }
 
 // Update binary patterns dynamically
@@ -39,7 +52,6 @@ function updateBinaryPatterns() {
 $(document).ready(() => {
 
   createGrid();
-  updateBinaryPatterns();
 
   // Tabs state management
   $(".tab-link").on("click", ({target}) => {
@@ -120,17 +132,13 @@ $(document).ready(() => {
     });
 
     updateBinaryPatterns();
-
-    fetch('/clear', {
-      method: 'POST',
-      headers: {
-        'Content-type': 'application/json',
-      },
-    })
-      .then((response) => response.json())
-      .then((json) => console.log(json));
   });
 
+});
+
+$(".copy").on("click", () => {
+  const txt = $("#binaryOutput").html().replaceAll("<br>", "\r\n");
+  navigator.clipboard.writeText(txt);
 });
 
 $("#postBtn").on("click", () => {

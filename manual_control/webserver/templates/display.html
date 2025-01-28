@@ -19,23 +19,9 @@
 <body class="bg bg-img">
   <h1 class="title">32 x 64 Grid with Image Overlay Detection and Marking</h1>
 
-  <nav class="menu-bar">
-    <ul class="tab-list">
-      <li class="tab-item">
-        <a class="tab-link" href="/">Typing mode</a>
-      </li>
-      <li class="tab-item">
-        <a class="tab-link">Camera mode</a>
-      </li>
-      <li class="tab-item">
-        <a class="tab-link tab-link--active" href="/display" data-src="display.html">Display mode</a>
-      </li>
-    </ul>
-  </nav>
-
   <main class="main">
     <div class="img-upload" id="drop_zone" ondrop="dropHandler(event);" ondragover="dragOverHandler(event);">
-      <img src="static/images/image.png" alt="image icon">
+      <img src="static/Images/image.png" alt="image icon">
       <p class="image-upload__txt">Drag and Drop file here or <span class="underline">Choose file</span></p>
     </div>
     <input type="file" class="input-img" id="imageUpload" accept="image/*">
@@ -68,6 +54,7 @@
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
 
     <!-- Local JS -->
+    <script src="static/js/loadNavbar.js"></script>
     <script src="static/js/index.js"></script>
     <script src="static/js/display.js"></script>
   </footer>

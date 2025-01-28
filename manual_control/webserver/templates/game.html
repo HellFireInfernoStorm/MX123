@@ -24,21 +24,18 @@
   <h1 class="title">32 x 64 Grid with Image Overlay Detection and Marking</h1>
 
   <main class="main">
-    <textarea class="textbox" placeholder="Type something..."></textarea>
     <div class="arrows output__click">
-      <button class="output-btn arrow" data-dir="ArrowUp">Top</button>
-      <button class="output-btn arrow" data-dir="ArrowDown">Bottom</button>
-      <button class="output-btn arrow" data-dir="ArrowLeft">Left</button>
-      <button class="output-btn arrow" data-dir="ArrowRight">Right</button>
-    </div>
-    <div class="arrows output__click">
-      <button class="output-btn" id="postBtn">
-        Post
-        <img class="post-btn__icon" src="static/images/share.png" alt="share arrow">
+      <button class="output-btn" id="startBtn" tabindex="-1">
+        Start Game
+        <img class="post-btn__icon" src="static/images/start.png" alt="Resume icon">
       </button>
-      <button class="output-btn" id="clearBtn">
-        Clear
-        <img class="post-btn__icon" src="static/images/refresh.png" alt="refresh arrows">
+      <button class="output-btn" id="restartBtn" tabindex="-1">
+        Restart Game
+        <img class="post-btn__icon" src="static/images/refresh.png" alt="Refresh arrows">
+      </button>
+      <button class="output-btn" id="stopBtn" tabindex="-1">
+        Stop Game
+        <img class="post-btn__icon" src="static/images/stop.png" alt="Stop icon">
       </button>
     </div>
     <div class="grid"></div>
@@ -54,8 +51,7 @@
 
     <!-- Local JS -->
     <script src="static/js/loadNavbar.js"></script>
-    <script src="static/js/index.js"></script>
-    <script src="static/js/typing.js"></script>
+    <script src="static/js/game.js"></script>
   </footer>
 </body>
 

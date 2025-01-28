@@ -29,6 +29,10 @@ class WebServer:
         def display():
             return render_template('display.html')
         
+        @self.app.route('/game')
+        def game():
+            return render_template('game.html')
+        
         # API endpoints
         @self.app.route('/update', methods=['POST'])
         def update():

@@ -8,7 +8,7 @@ GRID_HEIGHT = 64
 GRID_LED_GAP = 3
 
 # Screen resolution and dimensions
-SCREEN_SIZE = 1000
+SCREEN_SIZE = 800
 HALF_SCREEN_SIZE = SCREEN_SIZE // 2
 
 # Background color for the display
